@@ -1,21 +1,22 @@
 # ui.R
 library(shiny)
-PopEtaAnno<-read.csv("PopAgeYear.csv")
-towns<-sort(as.character(unique(PopEtaAnno$Comune)))
+## PopEtaAnno<-read.csv("PopAgeYear.csv")
+PopEtaAnno<-read.csv("PopolazionePerComuneEdAnno.csv", stringsAsFactors = FALSE)
+towns<-sort(unique(PopEtaAnno$Comune))
 rm(PopEtaAnno)
 
 shinyUI(fluidPage(
     titlePanel("Population of Roma province"),
     sidebarLayout(
         sidebarPanel("This site shows the trend from 2002 to 2011 of the female and/or male population
-                     resident in the towns of Roma province, highlighting in red the relevant territory
-                     in the province map",
-            br(),
+                     resident in the towns of Roma province",
             br(),
             br(),
             helpText("Help: select the type of info and/or the town you are interested in
-                     and the barplot and/or the map below will be updated accordingly"),
-            br(),
+                     and the barplot and/or the map below will be updated accordingly."),
+            helpText("The territory of the selected town is highlighted in the map with a colour
+                     of 'heat.colors(10)' palette selected according to the range of its average
+                     population along the period"),
             br(),            
             radioButtons("M_F_MF", label="Choose the info to show:",
                         choices = c("Female", "Male", "Male+Female"),
@@ -26,7 +27,6 @@ shinyUI(fluidPage(
                         selected = towns[towns=="Roma"]),
             ## sliderInput("range", label = "Range of interest",
             ##                       min = 0, max = 100, value = c(0, 100))
-            br(),
             br(),
             br(),
             br(),            

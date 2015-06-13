@@ -1,8 +1,14 @@
 library(shiny)
 library(maps)
 library(sp)
+library(Hmisc)
+## PopEtaAnno<-read.csv("PopAgeYear.csv")
+PopEtaAnno<-read.csv("PopolazionePerComuneEdAnno.csv", stringsAsFactors = FALSE)
+AvgPopCitta<-summarize(PopEtaAnno$Total, by = PopEtaAnno$Comune, mean)
+names(AvgPopCitta)<-c("Comune", "Total")
+AvgPopCitta$Range<-cut2(AvgPopCitta$Total, g = 10)
 
-PopEtaAnno<-read.csv("PopAgeYear.csv")
+
 ProvRM<-readRDS("ProvRM_map.RDS")
 
 shinyServer(function(input, output){
@@ -17,7 +23,6 @@ shinyServer(function(input, output){
     series2<-PopEtaAnno$Female[PopEtaAnno$Comune==city]
     perc_ser1<-round(series1/(series1+series2),3)*100
     perc_ser2<-round(series2/(series1+series2),3)*100
-    plot_names.arg = PopEtaAnno$Year[PopEtaAnno$Comune==city]
 
     layout(matrix(c(1,1,1,1,2,3,3,3,3,4), nrow = 2, ncol = 5, byrow=TRUE))
     par(cex=0.8, cex.lab=1.2, cex.main=1.5, cex.sub=1.2)       
@@ -28,7 +33,7 @@ shinyServer(function(input, output){
                 par(mar=c(4,3,3,0))
                 barplot(matrix(c(series1,series2),
                                ncol=10, byrow=TRUE), col=c("lightblue", "pink"),
-                        names.arg = plot_names.arg,
+                        names.arg = 2002:2011, axisnames = TRUE,
                         xlim=c(0,12),
                         ylim=c(0,lim_y),
                         main = paste("Male and Female population in the town of ",
@@ -48,7 +53,7 @@ shinyServer(function(input, output){
                 lim_y<- round(1.2*max(series1, series2),0)
                 par(mar=c(4,3,3,0))
                 barplot(series1, col="lightblue",
-                        names.arg = plot_names.arg,
+                        names.arg = 2002:2011,
                         ylim=c(0, lim_y),
                         xlim=c(0,12),
                         main = paste("Male population in the town of ",
@@ -64,7 +69,7 @@ shinyServer(function(input, output){
                
                par(mar=c(4,3,3,0))
                barplot(series2, col="pink",
-                       names.arg = plot_names.arg,
+                       names.arg = 2002:2011,
                        xlim=c(0,12),
                        ylim=c(0,lim_y),
                        main = paste("Female population in the town of ",
@@ -78,11 +83,21 @@ shinyServer(function(input, output){
 
     )       
     par(mar=c(0,0,4,0))
-    plot(ProvRM, col="lightyellow")
+    plot(ProvRM, col="white")
     Municipality_map<-subset(ProvRM, NAME_3==city)
-    plot(Municipality_map, col="red", add=TRUE)
+    rangePop<-mean(PopEtaAnno$Total)
+    colori<-heat.colors(10)
+    plot(Municipality_map,
+         col=colori[AvgPopCitta$Range[AvgPopCitta$Comune==city]],
+         add=TRUE)
     box(col="red")
     title("Map of municipalities of Roma province")
     text(12.1, 41.5, city, cex = 2, col="red")
-        })
+    text(12.1, 41.45,
+         paste("2002-2011 average population; ",
+               round(AvgPopCitta$Total[AvgPopCitta$Comune==city],0),
+               sep=""),
+         cex = 1.3, col="red")
+    
+    })
 })
